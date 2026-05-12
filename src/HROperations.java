@@ -25,13 +25,13 @@ class HireCommand implements HRCommand {
 
     @Override
     public void execute() {
-        targetGroup.add(employee);
+        targetGroup.addElement(employee);
         AuditLog.GetAuditLog().sendLog("Recruitment: " + employee.getName() + " was added.");
     }
 
     @Override
     public void undo() {
-        targetGroup.remove(employee);
+        targetGroup.removeElement(employee);
         AuditLog.GetAuditLog().sendLog("Retracted: Recruitment cancelled - " + employee.getName());
     }
 }
@@ -55,15 +55,15 @@ class PromoteCommand implements HRCommand {
 
     @Override
     public void execute() {
-        parentGroup.remove(oldEmployee);
-        parentGroup.add(promotedEmployee);
+        parentGroup.removeElement(oldEmployee);
+        parentGroup.addElement(promotedEmployee);
         AuditLog.GetAuditLog().sendLog("Promotion: " + oldEmployee.getName() + " promoted.");
     }
 
     @Override
     public void undo() {
-        parentGroup.remove(promotedEmployee);
-        parentGroup.add(oldEmployee);
+        parentGroup.removeElement(promotedEmployee);
+        parentGroup.addElement(oldEmployee);
         AuditLog.GetAuditLog().sendLog("Reversed: Promotion cancelled - " + oldEmployee.getName());
     }
 }
@@ -84,13 +84,13 @@ class LayoffCommand implements HRCommand {
 
     @Override
     public void execute() {
-        targetGroup.remove(employee);
+        targetGroup.removeElement(employee);
         AuditLog.GetAuditLog().sendLog("Dismissal: " + employee.getName() + " left.");
     }
 
     @Override
     public void undo() {
-        targetGroup.add(employee);
+        targetGroup.addElement(employee);
         AuditLog.GetAuditLog().sendLog("Reversed: The dismissal has been cancelled - " + employee.getName());
     }
 }
@@ -113,15 +113,15 @@ class MergeDeptCommand implements HRCommand {
 
     @Override
     public void execute() {
-        parentDepartment.remove(sourceDepartment);
-        targetDepartment.add(sourceDepartment);
+        parentDepartment.removeElement(sourceDepartment);
+        targetDepartment.addElement(sourceDepartment);
         AuditLog.GetAuditLog().sendLog("Department Merger: " + sourceDepartment.getName() + " -> " + targetDepartment.getName() + " added into.");
     }
 
     @Override
     public void undo() {
-        targetDepartment.remove(sourceDepartment);
-        parentDepartment.add(sourceDepartment);
+        targetDepartment.removeElement(sourceDepartment);
+        parentDepartment.addElement(sourceDepartment);
         AuditLog.GetAuditLog().sendLog("Split Back: " + sourceDepartment.getName() + " left and returned to her old place.");
     }
 }
