@@ -1,120 +1,142 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 interface OrgVisitor {
     void visitEmployee(Employee employee);
-
     void visitDepartment(Department department);
-
+    void visitTeam(Team team);
     String getReport();
 }
 
 class HeadcountVisitor implements OrgVisitor {
-    private int employeeCount;
-    private int departmentCount;
+    private int employeeCount   = 0;
+    private int departmentCount = 0;
+    private int teamCount       = 0;
 
+    @Override
     public void visitEmployee(Employee employee) {
         employeeCount++;
     }
 
+    @Override
     public void visitDepartment(Department department) {
         departmentCount++;
     }
 
+    @Override
+    public void visitTeam(Team team) {
+        teamCount++;
+    }
+
+    @Override
     public String getReport() {
-        return "Headcount Report:\n"
-                + "Departments: " + departmentCount + "\n"
-                + "Employees: " + employeeCount;
+        return "--- Headcount Report ---\n"
+                + "Departments : " + departmentCount + "\n"
+                + "Teams       : " + teamCount + "\n"
+                + "Employees   : " + employeeCount;
     }
 }
 
 class DiversityVisitor implements OrgVisitor {
-    private int femaleCount;
-    private int maleCount;
-    private int otherCount;
+    private int femaleCount = 0;
+    private int maleCount   = 0;
+    private int otherCount  = 0;
 
+    @Override
     public void visitEmployee(Employee employee) {
         String gender = employee.getGender();
-        if ("Female".equalsIgnoreCase(gender)) {
-            femaleCount++;
-        } else if ("Male".equalsIgnoreCase(gender)) {
-            maleCount++;
-        } else {
-            otherCount++;
-        }
+        if ("Female".equalsIgnoreCase(gender))      femaleCount++;
+        else if ("Male".equalsIgnoreCase(gender))   maleCount++;
+        else                                         otherCount++;
     }
 
-    public void visitDepartment(Department department) {
-    }
+    @Override
+    public void visitDepartment(Department department) {}
 
+    @Override
+    public void visitTeam(Team team) {}
+
+    @Override
     public String getReport() {
-        return "Diversity Report:\n"
-                + "Female employees: " + femaleCount + "\n"
-                + "Male employees: " + maleCount + "\n"
-                + "Other employees: " + otherCount;
+        int total = femaleCount + maleCount + otherCount;
+        String femaleRatio = total > 0
+                ? String.format("%.1f%%", (femaleCount * 100.0) / total) : "N/A";
+        String maleRatio   = total > 0
+                ? String.format("%.1f%%", (maleCount   * 100.0) / total) : "N/A";
+
+        return "--- Diversity Report ---\n"
+                + "Female : " + femaleCount + " (" + femaleRatio + ")\n"
+                + "Male   : " + maleCount   + " (" + maleRatio   + ")\n"
+                + "Other  : " + otherCount;
     }
 }
 
 class SeniorityVisitor implements OrgVisitor {
-    private ArrayList<Employee> seniorEmployees = new ArrayList<>();
+    private List<Employee> seniorEmployees = new ArrayList<>();
+    private static final int THRESHOLD = 20;
 
+    @Override
     public void visitEmployee(Employee employee) {
-        if (employee.getYearsOfService() >= 20) {
+        if (employee.getYearsOfService() >= THRESHOLD) {
             seniorEmployees.add(employee);
         }
     }
 
-    public void visitDepartment(Department department) {
-    }
+    @Override
+    public void visitDepartment(Department department) {}
 
+    @Override
+    public void visitTeam(Team team) {}
+
+    @Override
     public String getReport() {
-        StringBuilder report = new StringBuilder("Seniority Report:\n");
-        report.append("Employees with 20+ years of service:");
+        StringBuilder sb = new StringBuilder("--- Seniority Report (20+ years) ---\n");
 
         if (seniorEmployees.isEmpty()) {
-            report.append("\nNo employees found.");
-            return report.toString();
+            sb.append("No employees with 20+ years of service found.");
+            return sb.toString();
         }
 
-        for (Employee employee : seniorEmployees) {
-            report.append("\n- ")
-                    .append(employee.getName())
-                    .append(" (")
-                    .append(employee.getYearsOfService())
-                    .append(" years, ")
-                    .append(employee.getRole())
-                    .append(")");
+        for (Employee e : seniorEmployees) {
+            sb.append("- ").append(e.getName())
+              .append(" | ").append(e.getYearsOfService()).append(" years")
+              .append(" | ").append(e.getPosition())
+              .append("\n");
         }
-        return report.toString();
+        return sb.toString().trim();
     }
 }
 
 class RoleDistributionVisitor implements OrgVisitor {
-    private Map<String, Integer> roleCounts = new HashMap<>();
+    private Map<String, Integer> positionCounts = new HashMap<>();
 
+    @Override
     public void visitEmployee(Employee employee) {
-        String role = employee.getRole();
-        roleCounts.put(role, roleCounts.getOrDefault(role, 0) + 1);
+        String pos = employee.getPosition();
+        positionCounts.put(pos, positionCounts.getOrDefault(pos, 0) + 1);
     }
 
-    public void visitDepartment(Department department) {
-    }
+    @Override
+    public void visitDepartment(Department department) {}
 
+    @Override
+    public void visitTeam(Team team) {}
+
+    @Override
     public String getReport() {
-        StringBuilder report = new StringBuilder("Role Distribution Report:");
+        StringBuilder sb = new StringBuilder("--- Role Distribution Report ---\n");
 
-        if (roleCounts.isEmpty()) {
-            report.append("\nNo roles found.");
-            return report.toString();
+        if (positionCounts.isEmpty()) {
+            sb.append("No roles found.");
+            return sb.toString();
         }
 
-        for (Map.Entry<String, Integer> entry : roleCounts.entrySet()) {
-            report.append("\n- ")
-                    .append(entry.getKey())
-                    .append(": ")
-                    .append(entry.getValue());
+        for (Map.Entry<String, Integer> entry : positionCounts.entrySet()) {
+            sb.append("- ").append(entry.getKey())
+              .append(": ").append(entry.getValue()).append("\n");
         }
-        return report.toString();
+        return sb.toString().trim();
     }
 }
