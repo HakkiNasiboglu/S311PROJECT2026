@@ -1,14 +1,14 @@
-import Department;
+package src;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-interface OrgVisitor {
-    void visitEmployee(Employee employee);
-    void visitDepartment(Department department);
-    void visitTeam(Team team);
+public interface OrgVisitor {
+    void visitEmployee(WorkElement employee);
+    void visitDepartment(WorkElement department);
+    void visitTeam(WorkElement team);
     String getReport();
 }
 
@@ -18,17 +18,17 @@ class HeadcountVisitor implements OrgVisitor {
     private int teamCount       = 0;
 
     @Override
-    public void visitEmployee(Employee employee) {
+    public void visitEmployee(WorkElement employee) {
         employeeCount++;
     }
 
     @Override
-    public void visitDepartment(Department department) {
+    public void visitDepartment(WorkElement department) {
         departmentCount++;
     }
 
     @Override
-    public void visitTeam(Team team) {
+    public void visitTeam(WorkElement team) {
         teamCount++;
     }
 
@@ -47,7 +47,7 @@ class DiversityVisitor implements OrgVisitor {
     private int otherCount  = 0;
 
     @Override
-    public void visitEmployee(Employee employee) {
+    public void visitEmployee(WorkElement employee) {
         String gender = employee.getGender();
         if ("Female".equalsIgnoreCase(gender))      femaleCount++;
         else if ("Male".equalsIgnoreCase(gender))   maleCount++;
@@ -55,10 +55,10 @@ class DiversityVisitor implements OrgVisitor {
     }
 
     @Override
-    public void visitDepartment(Department department) {}
+    public void visitDepartment(WorkElement department) {}
 
     @Override
-    public void visitTeam(Team team) {}
+    public void visitTeam(WorkElement team) {}
 
     @Override
     public String getReport() {
@@ -76,21 +76,21 @@ class DiversityVisitor implements OrgVisitor {
 }
 
 class SeniorityVisitor implements OrgVisitor {
-    private List<Employee> seniorEmployees = new ArrayList<>();
+    private List<WorkElement> seniorEmployees = new ArrayList<>();
     private static final int THRESHOLD = 20;
 
     @Override
-    public void visitEmployee(Employee employee) {
+    public void visitEmployee(WorkElement employee) {
         if (employee.getYearsOfService() >= THRESHOLD) {
             seniorEmployees.add(employee);
         }
     }
 
     @Override
-    public void visitDepartment(Department department) {}
+    public void visitDepartment(WorkElement department) {}
 
     @Override
-    public void visitTeam(Team team) {}
+    public void visitTeam(WorkElement team) {}
 
     @Override
     public String getReport() {
@@ -101,11 +101,11 @@ class SeniorityVisitor implements OrgVisitor {
             return sb.toString();
         }
 
-        for (Employee e : seniorEmployees) {
+        for (WorkElement e : seniorEmployees) {
             sb.append("- ").append(e.getName())
-              .append(" | ").append(e.getYearsOfService()).append(" years")
-              .append(" | ").append(e.getPosition())
-              .append("\n");
+                    .append(" | ").append(e.getYearsOfService()).append(" years")
+                    .append(" | ").append(e.getPosition())
+                    .append("\n");
         }
         return sb.toString().trim();
     }
@@ -115,16 +115,16 @@ class RoleDistributionVisitor implements OrgVisitor {
     private Map<String, Integer> positionCounts = new HashMap<>();
 
     @Override
-    public void visitEmployee(Employee employee) {
+    public void visitEmployee(WorkElement employee) {
         String pos = employee.getPosition();
         positionCounts.put(pos, positionCounts.getOrDefault(pos, 0) + 1);
     }
 
     @Override
-    public void visitDepartment(Department department) {}
+    public void visitDepartment(WorkElement department) {}
 
     @Override
-    public void visitTeam(Team team) {}
+    public void visitTeam(WorkElement team) {}
 
     @Override
     public String getReport() {
@@ -137,7 +137,7 @@ class RoleDistributionVisitor implements OrgVisitor {
 
         for (Map.Entry<String, Integer> entry : positionCounts.entrySet()) {
             sb.append("- ").append(entry.getKey())
-              .append(": ").append(entry.getValue()).append("\n");
+                    .append(": ").append(entry.getValue()).append("\n");
         }
         return sb.toString().trim();
     }

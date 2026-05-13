@@ -1,5 +1,7 @@
-import src.AuditLog;
-import src.Department;
+package src;
+
+import src.OrgVisitor;
+import src.WorkElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,7 @@ class CorporateHead implements OrgObserver {
     @Override
     public void onOrgChange(String message) {
         notifications.add(message);
-        System.out.println("[CEO - " + name + "] Notification received: " + message);
+        System.out.println("[Corporate Head - " + name + "] Notification received: " + message);
     }
 
     public List<String> getNotifications() {
@@ -60,12 +62,12 @@ class CorporateHead implements OrgObserver {
     }
 }
 
-class HRSystemMain {
+public class HRSystemMain {
     public static void main(String[] args) {
 
     }
 
-    private static void printReport(Department root, OrgVisitor visitor) {
+    private static void printReport(WorkElement root, OrgVisitor visitor) {
         root.accept(visitor);
         System.out.println(visitor.getReport());
     }
