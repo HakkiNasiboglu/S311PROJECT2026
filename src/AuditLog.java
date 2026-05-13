@@ -1,3 +1,5 @@
+package src;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -5,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class AuditLog {
+public class AuditLog {
 
     private static AuditLog instance = null;
     private final List<String> logs = new ArrayList<String>();
