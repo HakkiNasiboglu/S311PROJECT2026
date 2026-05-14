@@ -48,7 +48,7 @@ class DiversityVisitor implements OrgVisitor {
 
     @Override
     public void visitEmployee(WorkElement employee) {
-        String gender = employee.getGender();
+        String gender = ((Employee) employee).getGender();
         if ("Female".equalsIgnoreCase(gender))      femaleCount++;
         else if ("Male".equalsIgnoreCase(gender))   maleCount++;
         else                                         otherCount++;
@@ -81,7 +81,7 @@ class SeniorityVisitor implements OrgVisitor {
 
     @Override
     public void visitEmployee(WorkElement employee) {
-        if (employee.getYearsOfService() >= THRESHOLD) {
+        if (((Employee) employee).getYearsOfService() >= THRESHOLD) {
             seniorEmployees.add(employee);
         }
     }
@@ -103,8 +103,8 @@ class SeniorityVisitor implements OrgVisitor {
 
         for (WorkElement e : seniorEmployees) {
             sb.append("- ").append(e.getName())
-                    .append(" | ").append(e.getYearsOfService()).append(" years")
-                    .append(" | ").append(e.getPosition())
+                    .append(" | ").append(((Employee) e).getYearsOfService()).append(" years")
+                    .append(" | ").append(((Employee) e).getPosition())
                     .append("\n");
         }
         return sb.toString().trim();
@@ -116,7 +116,7 @@ class RoleDistributionVisitor implements OrgVisitor {
 
     @Override
     public void visitEmployee(WorkElement employee) {
-        String pos = employee.getPosition();
+        String pos = ((Employee) employee).getPosition();
         positionCounts.put(pos, positionCounts.getOrDefault(pos, 0) + 1);
     }
 
