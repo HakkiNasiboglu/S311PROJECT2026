@@ -45,7 +45,7 @@ class PromoteCommand implements HRCommand {
 
     public PromoteCommand(WorkElement employee, String newPosition) {
         this.employee = employee;
-        this.promotedEmployee = new Employee(employee.getName(), newPosition);
+        this.promotedEmployee = new Employee(employee.getName(), newPosition, ((Employee)employee).getYearsOfService(), ((Employee)employee).getGender());
     }
 
     @Override
