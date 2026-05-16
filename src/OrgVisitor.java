@@ -18,19 +18,13 @@ class HeadcountVisitor implements OrgVisitor {
     private int teamCount       = 0;
 
     @Override
-    public void visitEmployee(WorkElement employee) {
-        employeeCount++;
-    }
+    public void visitEmployee(WorkElement employee) {employeeCount++;}
 
     @Override
-    public void visitDepartment(WorkElement department) {
-        departmentCount++;
-    }
+    public void visitDepartment(WorkElement department) {departmentCount++;}
 
     @Override
-    public void visitTeam(WorkElement team) {
-        teamCount++;
-    }
+    public void visitTeam(WorkElement team) {teamCount++;}
 
     @Override
     public String getReport() {
@@ -49,9 +43,9 @@ class DiversityVisitor implements OrgVisitor {
     @Override
     public void visitEmployee(WorkElement employee) {
         String gender = ((Employee) employee).getGender();
-        if ("Female".equalsIgnoreCase(gender))      femaleCount++;
-        else if ("Male".equalsIgnoreCase(gender))   maleCount++;
-        else                                         otherCount++;
+        if ("Female".equalsIgnoreCase(gender)) femaleCount++;
+        else if ("Male".equalsIgnoreCase(gender)) maleCount++;
+        else otherCount++;
     }
 
     @Override
