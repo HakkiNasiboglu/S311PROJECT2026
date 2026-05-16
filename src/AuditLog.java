@@ -29,7 +29,7 @@ public class AuditLog {
 
     public void printLogHistory() {
         System.out.println("-Audit Log History-");
-        for(String log : logs){
+        for(String log : getLogs()){
             System.out.println(log);
         }
     }
