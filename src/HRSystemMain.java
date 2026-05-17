@@ -50,7 +50,7 @@ class OrganizationNotifier implements OrgSubject {
     private OrganizationNotifier() {
     }
 
-    public static OrganizationNotifier getInstance() {
+    public static OrganizationNotifier getNotifier() {
         if (instance == null) {
             synchronized (OrganizationNotifier.class) {
                 if (instance == null) {
@@ -85,7 +85,7 @@ public class HRSystemMain {
     public static void main(String[] args) {
 
         CorporateHead ceo = new CorporateHead("Ufuk");
-        OrganizationNotifier.getInstance().subscribe(ceo);
+        OrganizationNotifier.getNotifier().subscribe(ceo);
 
         HRInvoker invoker = new HRInvoker();
         OrgVisitor headcount = new HeadcountVisitor();

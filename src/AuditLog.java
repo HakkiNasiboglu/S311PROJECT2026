@@ -11,7 +11,6 @@ public class AuditLog {
 
     private static volatile AuditLog instance = null;
     private final List<String> logs = new ArrayList<>();
-    private static final Lock lock = new ReentrantLock();
 
     // If we need to reset AuditLog
     // public static void initInstance() { instance = null;}
@@ -28,12 +27,8 @@ public class AuditLog {
 
     public static AuditLog getAuditLog() {
         if (instance == null) {
-            lock.lock();
-            try {
-                if (instance == null)
-                    instance = new AuditLog();
-            } finally {
-                lock.unlock();
+            synchronized (AuditLog.class) {
+                if (instance == null) instance = new AuditLog();
             }
         }
         return instance;

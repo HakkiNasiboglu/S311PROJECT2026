@@ -16,15 +16,19 @@ public abstract class WorkElement {
     public WorkElement getParent() {return parent;}
 
     //for leafs. composite abstract class will override them
-    public void addElement(WorkElement element) {throw new UnsupportedOperationException(" Unsupported command for " + this.name );}
-    public void removeElement(WorkElement element) {throw new UnsupportedOperationException(" Unsupported command for " + this.name);}
+    public void addElement(WorkElement element) {
+        throw new UnsupportedOperationException(" Unsupported command for " + this.name );
+    }
+    public void removeElement(WorkElement element) {
+        throw new UnsupportedOperationException(" Unsupported command for " + this.name);
+    }
     public List<WorkElement> getChild() {return Collections.emptyList();}
 
     public abstract void display(int indent);
     public abstract void accept(OrgVisitor visitor);
 }
 
-//COMPOSITE ELEMENT (ABSTRACT)
+// COMPOSITE ELEMENT (ABSTRACT)
 abstract class CompositeElement extends WorkElement {
     protected List<WorkElement> children = new ArrayList<>();
 
@@ -46,7 +50,7 @@ abstract class CompositeElement extends WorkElement {
     public List<WorkElement> getChild() {return children;}
 }
 
-//ELEMENTS
+// ELEMENTS
 class Department extends CompositeElement {
 
     public Department(String name) {super(name);}
@@ -65,7 +69,7 @@ class Department extends CompositeElement {
     }
 }
 
-// 4. SOMUT COMPOSITE: Team
+// COMPOSITE: Team
 class Team extends CompositeElement {
 
     public Team(String name) {super(name);}
@@ -84,7 +88,7 @@ class Team extends CompositeElement {
     }
 }
 
-// 5. LEAF: Employee
+// LEAF: Employee
 class Employee extends WorkElement {
     private String position;
     private int yearsOfService;

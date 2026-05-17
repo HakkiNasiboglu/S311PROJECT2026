@@ -126,7 +126,7 @@ class MergeDeptCommand implements HRCommand {
         commonParent.addElement(mergedDepartment);
 
         AuditLog.getAuditLog().sendLog("Department merged: " + mergedDepartment.getName());
-        OrganizationNotifier.getInstance().notifyObservers("Departments merged into: " + mergedDepartment.getName());
+        OrganizationNotifier.getNotifier().notifyObservers("Departments merged into: " + mergedDepartment.getName());
     }
 
     @Override
@@ -168,7 +168,7 @@ class SplitBackDeptCommand implements HRCommand {
         }
 
         AuditLog.getAuditLog().sendLog(targetDepartment.getName() + " split back into its original parts.");
-        OrganizationNotifier.getInstance()
+        OrganizationNotifier.getNotifier()
                 .notifyObservers(targetDepartment.getName() + " split back into its original parts.");
     }
 
