@@ -1,3 +1,8 @@
+//Ataberk Yayla
+//Elif Göksu Sümer
+//Hakkı Nasiboğlu
+//Utku Sertkaya
+
 package src;
 
 import java.util.ArrayList;
@@ -26,7 +31,7 @@ class CorporateHead implements OrgObserver {
 
 public class HRSystemMain {
     public static void main(String[] args) {
-        CorporateHead ceo = new CorporateHead("Utku");
+        CorporateHead ceo = new CorporateHead("Jacob");
         OrganizationNotifier.getInstance().subscribe(ceo);
 
         HRInvoker invoker = new HRInvoker();
@@ -39,9 +44,9 @@ public class HRSystemMain {
         bigDept.addElement(cleanDept);
 
         Employee dev1 = new Employee("Alice", "Developer", 3, "Female");
-        Employee dev2 = new Employee("a", "Developer", 1, "Female");
-        Employee dev3 = new Employee("n", "Developer", 21, "Female");
-        Employee dev4 = new Employee("Ac", "Developer", 20, "Male");
+        Employee dev2 = new Employee("Melissa", "Developer", 1, "Female");
+        Employee dev3 = new Employee("Millie", "Developer", 21, "Female");
+        Employee dev4 = new Employee("Mack", "Developer", 20, "Male");
 
         HRCommand hire1 = new HireCommand(bigDept, dev1);
         HRCommand hire2 = new HireCommand(techDept, dev2);
@@ -52,8 +57,11 @@ public class HRSystemMain {
         invoker.executeCommand(hire3);
         invoker.executeCommand(hire4);
 
+        System.out.println("Tech Dept");
         printReport(techDept, visitor);
+        System.out.println("Cleaning Dept");
         printReport(cleanDept, visitor);
+        System.out.println("Big Dept");
         printReport(bigDept, visitor);
         Department mergedDept = new Department("mergedDept");
         HRCommand merge = new MergeDeptCommand(techDept, cleanDept, mergedDept);
