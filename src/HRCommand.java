@@ -10,43 +10,40 @@ interface HRCommand {
 }
 
 class HireCommand implements HRCommand {
-    private WorkElement targetTeam;
-    private WorkElement employee;
+    private CompositeElement target; //dept or team
+    private Employee employee;
 
-    public HireCommand(WorkElement targetTeam, WorkElement employee) {
-        this.targetTeam = targetTeam;
+    public HireCommand(CompositeElement targetTeam, Employee employee) {
+        this.target = targetTeam;
         this.employee = employee;
     }
 
     @Override
-    public boolean validate() {
-        return targetTeam != null && employee != null && employee.getParent() == null;
-    }
+    public boolean validate() {return target != null && employee != null && employee.getParent() == null;}
 
     @Override
     public void execute() {
-        targetTeam.addElement(employee);
-        employee.setParent(targetTeam);
-        AuditLog.GetAuditLog().sendLog("Recruitment: " + employee.getName() + " was added.");
+        target.addElement(employee);
+        AuditLog.getAuditLog().sendLog("Recruitment: " + employee.getName() + " was added.");
     }
 
     @Override
     public void undo() {
-        targetTeam.removeElement(employee);
-        employee.setParent(null);
-        AuditLog.GetAuditLog().sendLog("Retracted: Recruitment cancelled - " + employee.getName());
+        target.removeElement(employee);
+        AuditLog.getAuditLog().sendLog("Retracted: Recruitment cancelled - " + employee.getName());
     }
 }
 
 class PromoteCommand implements HRCommand {
-    private WorkElement parent;
-    private WorkElement employee;
-    private WorkElement promotedEmployee;
+    private Employee employee;
+    private String newPosition;
+    private String currentPosition;
 
-    public PromoteCommand(WorkElement employee, String newPosition) {
+    public PromoteCommand(Employee employee, String newPosition) {
         this.employee = employee;
-        this.promotedEmployee = new Employee(employee.getName(), newPosition, ((Employee)employee).getYearsOfService(), ((Employee)employee).getGender());
+        this.newPosition = newPosition;
     }
+
 
     @Override
     public boolean validate() {
@@ -55,85 +52,72 @@ class PromoteCommand implements HRCommand {
 
     @Override
     public void execute() {
-        this.parent = employee.getParent();
-
-        parent.removeElement(employee);
-        parent.addElement(promotedEmployee);
-
-        AuditLog.GetAuditLog().sendLog("Promotion: " + employee.getName() + " promoted to new role.");
+        this.currentPosition = employee.getPosition();
+        employee.setPosition(newPosition);
+        AuditLog.getAuditLog().sendLog("Promotion: " + employee.getName() + " promoted to new role.");
     }
 
     @Override
     public void undo() {
-        parent.removeElement(promotedEmployee);
-        parent.addElement(employee);
-        AuditLog.GetAuditLog().sendLog("Reversed: Promotion cancelled for " + employee.getName());
+        employee.setPosition(currentPosition);
+        AuditLog.getAuditLog().sendLog("Reversed: Promotion cancelled for " + employee.getName());
     }
 }
 
 class LayoffCommand implements HRCommand {
-    private WorkElement employee;
-    private WorkElement savedParent;
+    private Employee employee;
+    private CompositeElement savedParent;
 
-    public LayoffCommand(WorkElement employee) {
-        this.employee = employee;
-    }
+    public LayoffCommand(Employee employee) {this.employee = employee;}
 
     @Override
-    public boolean validate() {
-        return employee != null && employee.getParent() != null;
-    }
+    public boolean validate() {return employee != null && employee.getParent() instanceof CompositeElement;}
 
     @Override
     public void execute() {
-        this.savedParent = employee.getParent();
+        this.savedParent = (CompositeElement) employee.getParent(); //dept or team
         savedParent.removeElement(employee);
-        AuditLog.GetAuditLog().sendLog("Dismissal: " + employee.getName() + " has been dismissed.");
+        AuditLog.getAuditLog().sendLog("Dismissal: " + employee.getName() + " has been dismissed.");
     }
 
     @Override
     public void undo() {
         if (savedParent != null) savedParent.addElement(employee);
-        AuditLog.GetAuditLog().sendLog("Retracted: Dismissal cancelled - " + employee.getName());
+        AuditLog.getAuditLog().sendLog("Retracted: Dismissal cancelled - " + employee.getName());
     }
 }
 
 class MergeDeptCommand implements HRCommand {
-    private WorkElement mergingDepartment1;
-    private WorkElement mergingDepartment2;
-    private WorkElement mergedDepartment;
-    private WorkElement commonParent;
+    private Department mergingDepartment1;
+    private Department mergingDepartment2;
+    private Department mergedDepartment;
+    private CompositeElement commonParent;
 
-    public MergeDeptCommand(WorkElement d1, WorkElement d2, String newName) {
+    public MergeDeptCommand(Department d1, Department d2, Department targetDept) {
         this.mergingDepartment1 = d1;
         this.mergingDepartment2 = d2;
-        this.mergedDepartment = new Department(newName);
+        this.mergedDepartment = targetDept;
     }
 
     @Override
     public boolean validate() {
         return mergingDepartment1 != null && mergingDepartment2 != null &&
-                mergingDepartment1 instanceof Department && mergingDepartment2 instanceof Department &&
-                mergingDepartment1.getParent() != null && mergingDepartment1.getParent() == mergingDepartment2.getParent();
+                mergingDepartment1.getParent() != null &&
+                mergingDepartment1.getParent() == mergingDepartment2.getParent();
     }
 
     @Override
     public void execute() {
-        this.commonParent = mergingDepartment1.getParent();
+        this.commonParent = (CompositeElement) mergingDepartment1.getParent();
 
-        List<WorkElement> sources = new ArrayList<>();
-        sources.add(mergingDepartment1);
-        sources.add(mergingDepartment2);
-        ((Department) mergedDepartment).setOrigins(sources);
-
-        mergedDepartment.getList().addAll(mergingDepartment1.getList());
-        mergedDepartment.getList().addAll(mergingDepartment2.getList());
+        mergedDepartment.addElement(mergingDepartment1);
+        mergedDepartment.addElement(mergingDepartment2);
 
         commonParent.removeElement(mergingDepartment1);
         commonParent.removeElement(mergingDepartment2);
         commonParent.addElement(mergedDepartment);
 
-        AuditLog.GetAuditLog().sendLog("Department merged: " + mergedDepartment.getName());
+        AuditLog.getAuditLog().sendLog("Department merged: " + mergedDepartment.getName());
     }
 
     @Override
@@ -142,45 +126,58 @@ class MergeDeptCommand implements HRCommand {
         commonParent.addElement(mergingDepartment1);
         commonParent.addElement(mergingDepartment2);
 
-        AuditLog.GetAuditLog().sendLog("Reversed: Department merge cancelled - " + mergedDepartment.getName());
+        AuditLog.getAuditLog().sendLog("Reversed: Department merge cancelled - " + mergedDepartment.getName());
     }
 }
 
 class SplitBackDeptCommand implements HRCommand {
-    private WorkElement splittingDepartment;
-    private WorkElement parent;
+    private Department targetDepartment;
+    private CompositeElement parent;
 
-    public SplitBackDeptCommand(WorkElement targetDept) {
-        this.splittingDepartment = targetDept;
+    public SplitBackDeptCommand(Department targetDept) {
+        this.targetDepartment = targetDept;
     }
+
+    private List<WorkElement> subDepartments;
 
     @Override
     public boolean validate() {
-        return splittingDepartment instanceof Department &&
-                splittingDepartment.getParent() != null &&
-                !((Department) splittingDepartment).getOrigins().isEmpty();
+        return targetDepartment.getParent() != null && !targetDepartment.getChild().isEmpty();
     }
 
     @Override
     public void execute() {
-        parent = splittingDepartment.getParent();
-        List<WorkElement> originalParts = ((Department) splittingDepartment).getOrigins();
+        this.parent = (CompositeElement) targetDepartment.getParent();
 
-        parent.removeElement(splittingDepartment);
+        this.subDepartments = new ArrayList<>(targetDepartment.getChild());
 
-        for (WorkElement original : originalParts) parent.addElement(original);
+        parent.removeElement(targetDepartment);
 
-        AuditLog.GetAuditLog().sendLog(splittingDepartment.getName() + " split back into its original parts.");
+        for (WorkElement subDept : subDepartments) {
+            targetDepartment.removeElement(subDept);
+            parent.addElement(subDept);
+        }
+
+        AuditLog.getAuditLog().sendLog(targetDepartment.getName() + " split back into its original parts.");
     }
 
+    @Override
     public void undo() {
-        List<WorkElement> origins = ((Department) splittingDepartment).getOrigins();
+        for (WorkElement subDept : subDepartments) {
+            parent.removeElement(subDept);
+            targetDepartment.addElement(subDept);
+        }
+        parent.addElement(targetDepartment);
 
-        for (WorkElement origin : origins) parent.removeElement(origin);
+        AuditLog.getAuditLog().sendLog("Reversed: Split back cancelled.");
+    }
 
-        parent.addElement(splittingDepartment);
-
-        AuditLog.GetAuditLog().sendLog("Reversed: Split back cancelled - " + splittingDepartment.getName());
+    public List<WorkElement> getRecoveredDepartments() {
+        if (subDepartments != null) {
+            return new ArrayList<>(subDepartments);
+        } else {
+            return new ArrayList<>();
+        }
     }
 }
 
@@ -193,6 +190,7 @@ class HRInvoker {
         if (command.validate()) {
             command.execute();
             commandHistory.add(command);
+            OrganizationNotifier.getInstance().notifyObservers("HR Action Executed: " + command.getClass().getSimpleName());
         }else {
             System.out.println("Command rejected: Verification failed.");
         }
@@ -200,8 +198,9 @@ class HRInvoker {
 
     public void undoLastCommand() {
         if (!commandHistory.isEmpty()) {
-            HRCommand lastCommand = commandHistory.remove(commandHistory.size() - 1);
+            HRCommand lastCommand = commandHistory.removeLast();
             lastCommand.undo();
+            OrganizationNotifier.getInstance().notifyObservers("HR Action Reversed: " + lastCommand.getClass().getSimpleName());
         }else {
             System.out.println("No action could be undone.");
         }

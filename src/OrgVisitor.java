@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 public interface OrgVisitor {
-    void visitEmployee(WorkElement employee);
-    void visitDepartment(WorkElement department);
-    void visitTeam(WorkElement team);
+    default void visitDepartment(Department department) {}
+    default void visitTeam(Team team) {}
+    default void visitEmployee(Employee employee) {}
+
     String getReport();
+    void reset();
 }
 
 class HeadcountVisitor implements OrgVisitor {
@@ -18,13 +20,13 @@ class HeadcountVisitor implements OrgVisitor {
     private int teamCount       = 0;
 
     @Override
-    public void visitEmployee(WorkElement employee) {employeeCount++;}
+    public void visitEmployee(Employee employee) {employeeCount++;}
 
     @Override
-    public void visitDepartment(WorkElement department) {departmentCount++;}
+    public void visitDepartment(Department department) {departmentCount++;}
 
     @Override
-    public void visitTeam(WorkElement team) {teamCount++;}
+    public void visitTeam(Team team) {teamCount++;}
 
     @Override
     public String getReport() {
@@ -32,6 +34,13 @@ class HeadcountVisitor implements OrgVisitor {
                 + "Departments : " + departmentCount + "\n"
                 + "Teams       : " + teamCount + "\n"
                 + "Employees   : " + employeeCount;
+    }
+
+    @Override
+    public void reset(){
+        employeeCount   = 0;
+        departmentCount = 0;
+        teamCount       = 0;
     }
 }
 
@@ -41,50 +50,39 @@ class DiversityVisitor implements OrgVisitor {
     private int otherCount  = 0;
 
     @Override
-    public void visitEmployee(WorkElement employee) {
-        String gender = ((Employee) employee).getGender();
+    public void visitEmployee(Employee employee) {
+        String gender = employee.getGender();
         if ("Female".equalsIgnoreCase(gender)) femaleCount++;
         else if ("Male".equalsIgnoreCase(gender)) maleCount++;
         else otherCount++;
     }
 
     @Override
-    public void visitDepartment(WorkElement department) {}
-
-    @Override
-    public void visitTeam(WorkElement team) {}
-
-    @Override
     public String getReport() {
         int total = femaleCount + maleCount + otherCount;
-        String femaleRatio = total > 0
-                ? String.format("%.1f%%", (femaleCount * 100.0) / total) : "N/A";
-        String maleRatio   = total > 0
-                ? String.format("%.1f%%", (maleCount   * 100.0) / total) : "N/A";
+        String femaleRatio = total > 0 ? String.format("%.1f%%", (femaleCount * 100.0) / total) : "N/A";
+        String maleRatio   = total > 0 ? String.format("%.1f%%", (maleCount   * 100.0) / total) : "N/A";
 
         return "--- Diversity Report ---\n"
                 + "Female : " + femaleCount + " (" + femaleRatio + ")\n"
                 + "Male   : " + maleCount   + " (" + maleRatio   + ")\n"
                 + "Other  : " + otherCount;
     }
+
+    @Override
+    public void reset() {
+        femaleCount = 0;
+        maleCount   = 0;
+        otherCount  = 0;
+    }
 }
 
 class SeniorityVisitor implements OrgVisitor {
-    private List<WorkElement> seniorEmployees = new ArrayList<>();
+    private List<Employee> seniorEmployees = new ArrayList<>();
     private static final int THRESHOLD = 20;
 
     @Override
-    public void visitEmployee(WorkElement employee) {
-        if (((Employee) employee).getYearsOfService() >= THRESHOLD) {
-            seniorEmployees.add(employee);
-        }
-    }
-
-    @Override
-    public void visitDepartment(WorkElement department) {}
-
-    @Override
-    public void visitTeam(WorkElement team) {}
+    public void visitEmployee(Employee employee) {if (employee.getYearsOfService() >= THRESHOLD) seniorEmployees.add(employee);}
 
     @Override
     public String getReport() {
@@ -95,13 +93,18 @@ class SeniorityVisitor implements OrgVisitor {
             return sb.toString();
         }
 
-        for (WorkElement e : seniorEmployees) {
+        for (Employee e : seniorEmployees) {
             sb.append("- ").append(e.getName())
-                    .append(" | ").append(((Employee) e).getYearsOfService()).append(" years")
-                    .append(" | ").append(((Employee) e).getPosition())
+                    .append(" | ").append(e.getYearsOfService()).append(" years")
+                    .append(" | ").append(e.getPosition())
                     .append("\n");
         }
         return sb.toString().trim();
+    }
+
+    @Override
+    public void reset() {
+        seniorEmployees = new ArrayList<>();
     }
 }
 
@@ -109,16 +112,10 @@ class RoleDistributionVisitor implements OrgVisitor {
     private Map<String, Integer> positionCounts = new HashMap<>();
 
     @Override
-    public void visitEmployee(WorkElement employee) {
-        String pos = ((Employee) employee).getPosition();
+    public void visitEmployee(Employee employee) {
+        String pos = employee.getPosition();
         positionCounts.put(pos, positionCounts.getOrDefault(pos, 0) + 1);
     }
-
-    @Override
-    public void visitDepartment(WorkElement department) {}
-
-    @Override
-    public void visitTeam(WorkElement team) {}
 
     @Override
     public String getReport() {
@@ -134,5 +131,10 @@ class RoleDistributionVisitor implements OrgVisitor {
                     .append(": ").append(entry.getValue()).append("\n");
         }
         return sb.toString().trim();
+    }
+
+    @Override
+    public void reset() {
+        positionCounts = new HashMap<>();
     }
 }
