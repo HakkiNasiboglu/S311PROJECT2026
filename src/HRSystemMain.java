@@ -11,10 +11,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+//Observer Pattern - OrgObserver
 interface OrgObserver {
     void onOrgChange(String message);
 }
 
+//CorporateHead is system's observer
 class CorporateHead implements OrgObserver {
     private String name;
     private List<String> notifications = new ArrayList<>();
@@ -40,19 +42,18 @@ class CorporateHead implements OrgObserver {
 
 interface OrgSubject {
     void subscribe(OrgObserver observer);
-
     void unsubscribe(OrgObserver observer);
-
     void notifyObservers(String message);
 }
 
+//Singleton Pattern - OrganizationNotifier
 class OrganizationNotifier implements OrgSubject {
     private List<OrgObserver> observers = new java.util.concurrent.CopyOnWriteArrayList<>();
     private static volatile OrganizationNotifier instance;
 
-    private OrganizationNotifier() {
-    }
+    private OrganizationNotifier() {}
 
+    //Double-Checking Locking
     public static OrganizationNotifier getNotifier() {
         if (instance == null) {
             synchronized (OrganizationNotifier.class) {
@@ -84,6 +85,7 @@ class OrganizationNotifier implements OrgSubject {
     }
 }
 
+//Observer getting reports in weekly periods
 class ReportScheduler {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final WorkElement rootElement;

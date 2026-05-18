@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+//Composite Pattern - WorkElement || Defaults for Leaf - Override for Composite
 public abstract class WorkElement {
     protected String name;
     protected WorkElement parent;
@@ -27,6 +28,7 @@ public abstract class WorkElement {
     public abstract void accept(OrgVisitor visitor);
 }
 
+//Abstract Composite - Overridden addElement(), removeElement(), getChild()
 abstract class CompositeElement extends WorkElement {
     protected List<WorkElement> children = new ArrayList<>();
 

@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+//Singleton Pattern - AuditLog
 public class AuditLog {
 
     private static volatile AuditLog instance = null;
@@ -19,6 +20,7 @@ public class AuditLog {
         }
     }
 
+    //Double-Checking Locking
     public static AuditLog getAuditLog() {
         if (instance == null) {
             synchronized (AuditLog.class) {
@@ -31,7 +33,6 @@ public class AuditLog {
     public synchronized void sendLog(String message) {
         String logEntry = String.format("[%s] %s", getTimestamp(), message);
         logs.add(logEntry);
-        System.out.println("An audit log added to the list. " + logEntry);
     }
 
     public synchronized List<String> getLogs() {

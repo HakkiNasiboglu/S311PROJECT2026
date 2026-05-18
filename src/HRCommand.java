@@ -3,6 +3,7 @@ package src;
 import java.util.ArrayList;
 import java.util.List;
 
+//Command Pattern - HRCommand
 interface HRCommand {
     void execute();
     boolean validate();
@@ -192,6 +193,7 @@ class SplitBackDeptCommand implements HRCommand {
     }
 }
 
+//Managing corporate hierarchy - MANAGER
 class HRInvoker {
     private List<HRCommand> commandHistory = new ArrayList<>();
 
