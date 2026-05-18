@@ -1,12 +1,15 @@
 //Ataberk Yayla
+//Utku Sertkaya
 //Elif Göksu Sümer
 //Hakkı Nasiboğlu
-//Utku Sertkaya
 
 package src;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 interface OrgObserver {
     void onOrgChange(String message);
@@ -78,6 +81,43 @@ class OrganizationNotifier implements OrgSubject {
         for (OrgObserver observer : observers) {
             observer.onOrgChange(message);
         }
+    }
+}
+
+class ReportScheduler {
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final WorkElement rootElement;
+
+    public ReportScheduler(WorkElement rootElement) {
+        this.rootElement = rootElement;
+    }
+
+    public void startWeeklyReporting() {
+        Runnable reportTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OrgVisitor diversityVisitor = new DiversityVisitor();
+
+                    rootElement.accept(diversityVisitor);
+                    String generatedReport = diversityVisitor.getReport();
+
+                    OrganizationNotifier.getNotifier().notifyObservers(
+                            "\n[AUTOMATIC WEEKLY REPORT]\n" + generatedReport
+                    );
+                } catch (Exception e) {
+                    System.err.println("Scheduler Error: " + e.getMessage());
+                }
+            }
+        };
+        scheduler.scheduleAtFixedRate(reportTask, 0, 7, TimeUnit.DAYS);
+
+        System.out.println("[System] Background Weekly Report Scheduler Started.");
+    }
+
+    public void stopScheduler() {
+        scheduler.shutdown();
+        System.out.println("[System] Report Scheduler Stopped.");
     }
 }
 
@@ -214,6 +254,22 @@ public class HRSystemMain {
 
         System.out.println("\n========== AUDIT LOG ==========");
         AuditLog.getAuditLog().printLogHistory();
+
+        System.out.println("\n========== AUTOMATED WEEKLY REPORT SCHEDULER ==========");
+
+        ReportScheduler reportScheduler = new ReportScheduler(pixelAgency);
+
+        reportScheduler.startWeeklyReporting();
+
+        try {
+            System.out.println("[System] Waiting to demonstrate automatic background reports...");
+            Thread.sleep(20000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        reportScheduler.stopScheduler();
+        System.out.println("\n========== SYSTEM SHUTDOWN ==========");
     }
 
     private static void printReport(WorkElement root, OrgVisitor visitor) {

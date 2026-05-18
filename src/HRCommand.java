@@ -5,14 +5,14 @@ import java.util.List;
 
 interface HRCommand {
     void execute();
-
     boolean validate();
-
     void undo();
+
+    String getCommandDetails();
 }
 
 class HireCommand implements HRCommand {
-    private CompositeElement target; // dept or team
+    private CompositeElement target;
     private Employee employee;
 
     public HireCommand(CompositeElement targetTeam, Employee employee) {
@@ -28,13 +28,16 @@ class HireCommand implements HRCommand {
     @Override
     public void execute() {
         target.addElement(employee);
-        AuditLog.getAuditLog().sendLog("Recruitment: " + employee.getName() + " was added.");
     }
 
     @Override
     public void undo() {
         target.removeElement(employee);
-        AuditLog.getAuditLog().sendLog("Retracted: Recruitment cancelled - " + employee.getName());
+    }
+
+    @Override
+    public String getCommandDetails() {
+        return "Hired: " + employee.getName();
     }
 }
 
@@ -57,13 +60,16 @@ class PromoteCommand implements HRCommand {
     public void execute() {
         this.currentPosition = employee.getPosition();
         employee.setPosition(newPosition);
-        AuditLog.getAuditLog().sendLog("Promotion: " + employee.getName() + " promoted to new role.");
     }
 
     @Override
     public void undo() {
         employee.setPosition(currentPosition);
-        AuditLog.getAuditLog().sendLog("Reversed: Promotion cancelled for " + employee.getName());
+    }
+
+    @Override
+    public String getCommandDetails() {
+        return "Promoted: " + employee.getName() + " to " + newPosition;
     }
 }
 
@@ -82,16 +88,19 @@ class LayoffCommand implements HRCommand {
 
     @Override
     public void execute() {
-        this.savedParent = (CompositeElement) employee.getParent(); // dept or team
+        this.savedParent = (CompositeElement) employee.getParent();
         savedParent.removeElement(employee);
-        AuditLog.getAuditLog().sendLog("Dismissal: " + employee.getName() + " has been dismissed.");
     }
 
     @Override
     public void undo() {
         if (savedParent != null)
             savedParent.addElement(employee);
-        AuditLog.getAuditLog().sendLog("Retracted: Dismissal cancelled - " + employee.getName());
+    }
+
+    @Override
+    public String getCommandDetails() {
+        return "Laid off: " + employee.getName();
     }
 }
 
@@ -124,9 +133,6 @@ class MergeDeptCommand implements HRCommand {
         commonParent.removeElement(mergingDepartment1);
         commonParent.removeElement(mergingDepartment2);
         commonParent.addElement(mergedDepartment);
-
-        AuditLog.getAuditLog().sendLog("Department merged: " + mergedDepartment.getName());
-        OrganizationNotifier.getNotifier().notifyObservers("Departments merged into: " + mergedDepartment.getName());
     }
 
     @Override
@@ -134,8 +140,11 @@ class MergeDeptCommand implements HRCommand {
         commonParent.removeElement(mergedDepartment);
         commonParent.addElement(mergingDepartment1);
         commonParent.addElement(mergingDepartment2);
+    }
 
-        AuditLog.getAuditLog().sendLog("Reversed: Department merge cancelled - " + mergedDepartment.getName());
+    @Override
+    public String getCommandDetails() {
+        return "Merged: " + mergingDepartment1.getName() + " & " + mergingDepartment2.getName();
     }
 }
 
@@ -166,10 +175,6 @@ class SplitBackDeptCommand implements HRCommand {
             targetDepartment.removeElement(subDept);
             parent.addElement(subDept);
         }
-
-        AuditLog.getAuditLog().sendLog(targetDepartment.getName() + " split back into its original parts.");
-        OrganizationNotifier.getNotifier()
-                .notifyObservers(targetDepartment.getName() + " split back into its original parts.");
     }
 
     @Override
@@ -179,16 +184,11 @@ class SplitBackDeptCommand implements HRCommand {
             targetDepartment.addElement(subDept);
         }
         parent.addElement(targetDepartment);
-
-        AuditLog.getAuditLog().sendLog("Reversed: Split back cancelled.");
     }
 
-    public List<WorkElement> getRecoveredDepartments() {
-        if (subDepartments != null) {
-            return new ArrayList<>(subDepartments);
-        } else {
-            return new ArrayList<>();
-        }
+    @Override
+    public String getCommandDetails() {
+        return "Split: " + targetDepartment.getName();
     }
 }
 
@@ -202,6 +202,10 @@ class HRInvoker {
         if (command.validate()) {
             command.execute();
             commandHistory.add(command);
+
+            String detail = command.getCommandDetails();
+            AuditLog.getAuditLog().sendLog("HR Action Executed -> " + detail);
+            OrganizationNotifier.getNotifier().notifyObservers("NOTIFICATION: " + detail);
         } else {
             System.out.println("Command rejected: Verification failed.");
         }
@@ -211,6 +215,10 @@ class HRInvoker {
         if (!commandHistory.isEmpty()) {
             HRCommand lastCommand = commandHistory.removeLast();
             lastCommand.undo();
+
+            String detail = lastCommand.getCommandDetails();
+            AuditLog.getAuditLog().sendLog("HR Action Reversed -> " + detail);
+            OrganizationNotifier.getNotifier().notifyObservers("REVERSED NOTIFICATION: " + detail);
         } else {
             System.out.println("No action could be undone.");
         }
